@@ -1786,28 +1786,31 @@ async function loadCatalogFromGoogleSheet() {
             if (toggleBtn) toggleBtn.addEventListener('click', () => navOverlay.classList.toggle('open'));
 
             // Fire Database fetch pipeline loop
-            loadCatalogFromGoogleSheet();// REPLACE OR ADD THIS BEFORE THE CALL AT LINE 1751
-async function loadCatalogFromGoogleSheet() {
+         async function loadCatalogFromGoogleSheet() {
     const catalogGrid = document.getElementById('nextdesk-catalog-grid');
-    // Ensure this ID matches your Sheet ID from the URL
     const SHEET_ID = "2PACX-1vQS20DkeoGXPns70y0Fh1RiMVqbmSrXuLyfG9YpZssdY4OXYuD-0sj2nln6ykoWNmSwI0AmJEhOAQpZ";
     const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
 
     try {
         const response = await fetch(API_URL);
         const text = await response.text();
-        const rows = text.split('\n').slice(1); // Skip header row
+        const rows = text.split('\n').slice(1); 
 
         let catalogHTML = '';
         rows.forEach(row => {
+            if(!row.trim()) return;
             const cols = row.split(',');
-            if (cols.length < 9) return; 
+            // Mapping your 10 columns: name, condition, badge, specs, details, price, oldPrice, img1, img2, img3
             const [name, condition, badge, specs, details, price, oldPrice, img1, img2, img3] = cols;
-            
+
             catalogHTML += `
             <div class="product-card">
                 <div class="product-image-container">
-                    <img src="${img1}" alt="${name}" class="product-image">
+                    <div class="product-carousel">
+                        <div class="carousel-track" style="width: 100%;">
+                            <div class="carousel-slide"><img src="${img1.trim()}" alt="${name}"></div>
+                        </div>
+                    </div>
                     <span class="product-badge">${badge}</span>
                 </div>
                 <div class="product-content">
@@ -1815,7 +1818,10 @@ async function loadCatalogFromGoogleSheet() {
                         <h3 class="product-name">${name}</h3>
                         <span class="product-condition">${condition}</span>
                     </div>
-                    <p>${details}</p>
+                    <p style="font-size: 0.8rem; color: var(--accent-color);">${details}</p>
+                    <ul class="product-specs-list">
+                        ${specs.split(';').map(s => `<li class="product-spec-item"><span>${s.trim()}</span></li>`).join('')}
+                    </ul>
                     <div class="product-footer">
                         <span class="product-price">Rs. ${price}</span>
                         <a href="https://wa.me/message/VDDFVTH7XREME1" class="btn btn-primary">Order on WA</a>
@@ -1825,7 +1831,8 @@ async function loadCatalogFromGoogleSheet() {
         });
         catalogGrid.innerHTML = catalogHTML;
     } catch (err) {
-        catalogGrid.innerHTML = `<p style="text-align: center; color: red;">Database sync failed.</p>`;
+        console.error(err);
+        catalogGrid.innerHTML = `<p style="text-align: center; color: red;">Sync failed. Check your CSV publication settings.</p>`;
     }
 }
         });
