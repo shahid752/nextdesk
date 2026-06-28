@@ -1603,8 +1603,6 @@
     </footer>
 
     <script>
-        // 🔴 PASTE YOUR UNIQUE GOOGLE SHEET ID STRING VALUE HERE:
-        const GOOGLE_SHEET_ID = "YOUR_SPREADSHEET_ID_HERE";
         const WHATSAPP_LINK = "https://wa.me/message/VDDFVTH7XREME1";
 
         // Global Carousel Slider Engine Initializer for Dynamic Content Cards
@@ -1660,80 +1658,43 @@
             });
         }
 
-        // ASYNC SHEET PARSING ENGINE
+        // ASYNC SHEET PARSING ENGINE (Unified & Corrected)
         async function loadCatalogFromGoogleSheet() {
-            // Ensure this ID matches your Sheet ID from the URL
-    const SHEET_ID = "2PACX-1vQS20DkeoGXPns70y0Fh1RiMVqbmSrXuLyfG9YpZssdY4OXYuD-0sj2nln6ykoWNmSwI0AmJEhOAQpZ";
-    const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
+            const catalogGrid = document.getElementById('nextdesk-catalog-grid');
+            if (!catalogGrid) return;
 
-    try {
-        const response = await fetch(API_URL);
-        const text = await response.text();
-        const rows = text.split('\n').slice(1); // Skip header row
+            const SHEET_ID = "2PACX-1vQS20DkeoGXPns70y0Fh1RiMVqbmSrXuLyfG9YpZssdY4OXYuD-0sj2nln6ykoWNmSwI0AmJEhOAQpZ";
+            const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
 
-        let catalogHTML = '';
-      rows.forEach(row => {
-    // This regex handles commas inside quoted fields (like specs)
-    const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-    if (!cols || cols.length < 9) return;
-    
-    // Clean up quotes from the data
-    const [name, condition, badge, specs, details, price, oldPrice, img1, img2, img3] = cols.map(c => c.replace(/^"|"$/g, ''));
-
-            catalogHTML += `
-            <div class="product-card">
-                <div class="product-image-container">
-                    <img src="${img1}" alt="${name}" class="product-image">
-                    <span class="product-badge">${badge}</span>
-                </div>
-                <div class="product-content">
-                    <div class="product-header">
-                        <h3 class="product-name">${name}</h3>
-                        <span class="product-condition">${condition}</span>
-                    </div>
-                    <p>${details}</p>
-                    <div class="product-footer">
-                        <span class="product-price">Rs. ${price}</span>
-                        <a href="https://wa.me/message/VDDFVTH7XREME1" class="btn btn-primary">Order on WA</a>
-                    </div>
-                </div>
-            </div>`;
-        });
-        catalogGrid.innerHTML = catalogHTML;
-    } catch (err) {
-        catalogGrid.innerHTML = `<p style="text-align: center; color: red;">Database sync failed.</p>`;
-    }
-}
-async function loadCatalogFromGoogleSheet() {
-    const catalogGrid = document.getElementById('nextdesk-catalog-grid');
-   
-                // Clean data wrapper out of JSON string execution envelope
-                const rawJson = JSON.parse(textText.substring(47).slice(0, -2));
-                const spreadsheetRows = rawJson.table.rows;
+            try {
+                const response = await fetch(API_URL);
+                const text = await response.text();
+                const rows = text.split('\n').slice(1); // Skip headers
 
                 let catalogHTML = '';
+                rows.forEach(row => {
+                    if(!row.trim()) return;
+                    
+                    // Regex handles commas safely inside quotes
+                    const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+                    if (!cols || cols.length < 10) return;
+                    
+                    const [name, condition, badge, specs, details, price, oldPrice, img1, img2, img3] = cols.map(c => c.replace(/^"|"$/g, '').trim());
 
-                spreadsheetRows.forEach(row => {
-                    // Extract data columns smoothly
-                    const cells = row.c.map(c => c ? c.v : '');
-                    const [laptopName, condition, badge, spec1, spec2, spec3, spec4, price, oldPrice, img1, img2, img3] = cells;
-
-                    if (!laptopName) return; // Skip empty sheets slots safely
-
-                    // Count total images dynamically to fix slider math width boundaries
+                    // Count total valid images to set correct CSS width percentages
                     let validImagesCount = 1;
                     if (img2) validImagesCount++;
                     if (img3) validImagesCount++;
 
-                    let slidesTrackHTML = `<div class="carousel-slide" style="width: ${100 / validImagesCount}%;"><img src="${img1}" alt="${laptopName}"></div>`;
+                    let slidesTrackHTML = `<div class="carousel-slide" style="width: ${100 / validImagesCount}%;"><img src="${img1}" alt="${name}"></div>`;
                     let dotsNavHTML = `<button class="carousel-dot active" data-slide="0"></button>`;
 
                     if (img2) {
-                        slidesTrackHTML += `<div class="carousel-slide" style="width: ${100 / validImagesCount}%;"><img src="${img2}" alt="${laptopName}"></div>`;
+                        slidesTrackHTML += `<div class="carousel-slide" style="width: ${100 / validImagesCount}%;"><img src="${img2}" alt="${name}"></div>`;
                         dotsNavHTML += `<button class="carousel-dot" data-slide="1"></button>`;
                     }
                     if (img3) {
-                        slidesTrackHTML += `<div class="carousel-slide" style="width: ${100 / validImagesCount}%;"><img src="${img3}" alt="${laptopName}"></div>`;
+                        slidesTrackHTML += `<div class="carousel-slide" style="width: ${100 / validImagesCount}%;"><img src="${img3}" alt="${name}"></div>`;
                         dotsNavHTML += `<button class="carousel-dot" data-slide="2"></button>`;
                     }
 
@@ -1752,21 +1713,19 @@ async function loadCatalogFromGoogleSheet() {
                         </div>
                         <div class="product-content">
                             <div class="product-header">
-                                <h3 class="product-name">${laptopName}</h3>
+                                <h3 class="product-name">${name}</h3>
                                 <span class="product-condition">${condition}</span>
                             </div>
+                            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">${details}</p>
                             <ul class="product-specs-list">
-                                <li class="product-spec-item"><span>${spec1}</span></li>
-                                <li class="product-spec-item"><span>${spec2}</span></li>
-                                <li class="product-spec-item"><span>${spec3}</span></li>
-                                <li class="product-spec-item"><span>${spec4}</span></li>
+                                ${specs.split(';').map(s => `<li class="product-spec-item"><span>${s.trim()}</span></li>`).join('')}
                             </ul>
                             <div class="product-footer">
                                 <div class="product-price-container">
                                     <span class="price-label" style="text-decoration: line-through; color: var(--text-muted); font-size: 0.65rem;">Rs. ${oldPrice}</span>
                                     <span class="product-price" style="color: #00FF66;">Rs. ${price}</span>
                                 </div>
-                                <a href="${WHATSAPP_LINK}" class="btn btn-primary product-wa-btn" data-product="${laptopName}">Order on WA</a>
+                                <a href="${WHATSAPP_LINK}" class="btn btn-primary product-wa-btn" data-product="${name}">Order on WA</a>
                             </div>
                         </div>
                     </div>`;
@@ -1774,71 +1733,83 @@ async function loadCatalogFromGoogleSheet() {
 
                 catalogGrid.innerHTML = catalogHTML;
                 initializeCarouselEngine();
+                initializeLightboxEngine();
             } catch (err) {
-                catalogGrid.innerHTML = `<p style="text-align: center; color: #ff3333; width: 100%;">Database synchronization error. Please check Sheet parameters.</p>`;
+                console.error(err);
+                catalogGrid.innerHTML = `<p style="text-align: center; color: #ff3333; width: 100%;">Database synchronization error. Please check your published CSV settings.</p>`;
             }
+        }
+
+        // Global Lightbox modal engine for close-up viewing
+        function initializeLightboxEngine() {
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+            const lightboxClose = document.querySelector('.lightbox-close');
+            const lightboxContainer = document.querySelector('.lightbox-content-container');
+
+            if (!lightbox || !lightboxImg) return;
+
+            const zoomableImages = document.querySelectorAll('.carousel-slide img, .product-image-container > img, .hero-image-wrapper img');
+
+            zoomableImages.forEach(img => {
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const src = img.getAttribute('src');
+                    if (src) {
+                        lightboxImg.src = src;
+                        lightbox.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                });
+            });
+
+            const deactivateLightbox = () => {
+                lightbox.classList.remove('active');
+                lightboxContainer.classList.remove('zoomed');
+                lightboxImg.style.transform = 'none';
+                document.body.style.overflow = '';
+            };
+
+            lightboxClose.addEventListener('click', deactivateLightbox);
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox || e.target === lightboxClose) {
+                    deactivateLightbox();
+                }
+            });
+
+            lightboxContainer.addEventListener('click', (e) => {
+                e.stopPropagation();
+                lightboxContainer.classList.toggle('zoomed');
+                if (!lightboxContainer.classList.contains('zoomed')) {
+                    lightboxImg.style.transform = 'none';
+                }
+            });
+
+            lightboxContainer.addEventListener('mousemove', (e) => {
+                if (lightboxContainer.classList.contains('zoomed')) {
+                    const rect = lightboxContainer.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const percentX = (x / rect.width) * 100;
+                    const percentY = (y / rect.height) * 100;
+                    lightboxImg.style.transformOrigin = `${percentX}% ${percentY}%`;
+                    lightboxImg.style.transform = 'scale(2.5)';
+                }
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
             // Apply links globally
             document.querySelectorAll('.nav-wa-btn, .hero-wa-btn').forEach(btn => btn.href = WHATSAPP_LINK);
             
-            // Base navigation overrides
+            // Mobile navigation toggler
             const toggleBtn = document.querySelector('.menu-toggle');
             const navOverlay = document.querySelector('.mobile-nav-overlay');
             if (toggleBtn) toggleBtn.addEventListener('click', () => navOverlay.classList.toggle('open'));
 
-            // Fire Database fetch pipeline loop
-         async function loadCatalogFromGoogleSheet() {
-    const catalogGrid = document.getElementById('nextdesk-catalog-grid');
-    const SHEET_ID = "2PACX-1vQS20DkeoGXPns70y0Fh1RiMVqbmSrXuLyfG9YpZssdY4OXYuD-0sj2nln6ykoWNmSwI0AmJEhOAQpZ";
-    const API_URL = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?output=csv`;
-
-    try {
-        const response = await fetch(API_URL);
-        const text = await response.text();
-        const rows = text.split('\n').slice(1); 
-
-        let catalogHTML = '';
-        rows.forEach(row => {
-            if(!row.trim()) return;
-            const cols = row.split(',');
-            // Mapping your 10 columns: name, condition, badge, specs, details, price, oldPrice, img1, img2, img3
-            const [name, condition, badge, specs, details, price, oldPrice, img1, img2, img3] = cols;
-
-            catalogHTML += `
-            <div class="product-card">
-                <div class="product-image-container">
-                    <div class="product-carousel">
-                        <div class="carousel-track" style="width: 100%;">
-                            <div class="carousel-slide"><img src="${img1.trim()}" alt="${name}"></div>
-                        </div>
-                    </div>
-                    <span class="product-badge">${badge}</span>
-                </div>
-                <div class="product-content">
-                    <div class="product-header">
-                        <h3 class="product-name">${name}</h3>
-                        <span class="product-condition">${condition}</span>
-                    </div>
-                    <p style="font-size: 0.8rem; color: var(--accent-color);">${details}</p>
-                    <ul class="product-specs-list">
-                        ${specs.split(';').map(s => `<li class="product-spec-item"><span>${s.trim()}</span></li>`).join('')}
-                    </ul>
-                    <div class="product-footer">
-                        <span class="product-price">Rs. ${price}</span>
-                        <a href="https://wa.me/message/VDDFVTH7XREME1" class="btn btn-primary">Order on WA</a>
-                    </div>
-                </div>
-            </div>`;
-        });
-        catalogGrid.innerHTML = catalogHTML;
-    } catch (err) {
-        console.error(err);
-        catalogGrid.innerHTML = `<p style="text-align: center; color: red;">Sync failed. Check your CSV publication settings.</p>`;
-    }
-}
-        });
+            // Load and run dynamic catalog loader
+            loadCatalogFromGoogleSheet();
+        })
     </script>
 </body>
 </html>
