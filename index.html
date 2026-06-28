@@ -1672,11 +1672,14 @@
         const rows = text.split('\n').slice(1); // Skip header row
 
         let catalogHTML = '';
-        rows.forEach(row => {
-            const cols = row.split(',');
-            if (cols.length < 9) return; 
-            const [name, condition, badge, specs, details, price, oldPrice, img1, img2, img3] = cols;
-            
+      rows.forEach(row => {
+    // This regex handles commas inside quoted fields (like specs)
+    const cols = row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+    if (!cols || cols.length < 9) return;
+    
+    // Clean up quotes from the data
+    const [name, condition, badge, specs, details, price, oldPrice, img1, img2, img3] = cols.map(c => c.replace(/^"|"$/g, ''));
+
             catalogHTML += `
             <div class="product-card">
                 <div class="product-image-container">
