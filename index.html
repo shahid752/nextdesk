@@ -1107,7 +1107,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* MOBILE MENU DRAWER */
+        /* MOBILE MENU DRAWER (UPDATED) */
         .mobile-nav-overlay {
             position: fixed;
             top: 0;
@@ -1122,32 +1122,49 @@
             align-items: center;
             gap: 2rem;
             transform: translateY(-100%);
-            transition: transform var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1);
+            transition: transform var(--transition-speed) cubic-bezier(0.16, 1, 0.3, 1), visibility var(--transition-speed);
+            
+            /* Add these lines to prevent scrolling and click capture when closed */
+            visibility: hidden;
+            pointer-events: none;
         }
 
         .mobile-nav-overlay.open {
             transform: translateY(0);
+            
+            /* Restore visibility and touch events when active */
+            visibility: visible;
+            pointer-events: auto;
         }
 
-        .mobile-nav-links {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
+        /* INTERACTIVE LIGHTBOX OVERLAY (UPDATED) */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(10, 10, 10, 0.95);
+            backdrop-filter: blur(8px);
+            justify-content: center;
             align-items: center;
-            gap: 1.8rem;
+            opacity: 0;
+            transition: opacity var(--transition-speed) ease, visibility var(--transition-speed);
+            
+            /* Prevent input capturing while inactive */
+            visibility: hidden;
+            pointer-events: none;
         }
 
-        .mobile-nav-links a {
-            font-family: var(--font-heading);
-            font-size: 1.5rem;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
-
-        .mobile-nav-links a:hover {
-            color: var(--accent-color);
+        .lightbox.active {
+            display: flex;
+            opacity: 1;
+            
+            /* Restore touch inputs when active */
+            visibility: visible;
+            pointer-events: auto;
         }
     </style>
 </head>
